@@ -1,0 +1,56 @@
+﻿# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: book-reservation-api-v1-deployment
+  labels:
+    app: book-reservation-api-v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: book-reservation-api-v1
+  template:
+    metadata:
+      labels:
+        app: book-reservation-api-v1
+    spec:
+      containers:
+      - name: book-reservation-api-v1-container
+        image: engzaman2020/book-reservation-api-v1-image:1
+        # This will use local image from minikube image list
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 3101
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: book-reservation-api-v1-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: book-reservation-api-v1
+  ports:
+    - port: 80
+      targetPort: 3101
+      nodePort: 30101
+---
+# Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: book-reservation-api-v1-ingress-nginx
+spec:
+  rules:
+  - host: "book-reservation-api-v1.com" # Set the real domain
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: book-reservation-api-v1-service # Get from Service of name
+            port:
+              number: 80
